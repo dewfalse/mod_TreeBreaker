@@ -56,6 +56,11 @@ public class mod_TreeBreaker extends BaseModMp {
 	@MLProp(info = "Setting for SinglePlay")
 	public static boolean breakleaves = false;
 
+	public static boolean allow_breakwood = true;
+	public static boolean allow_breakleaves = true;
+
+	public static int mode = 0;
+
 	@MLProp(info = "Setting for SinglePlay. Additional target block IDs. Separate by ','")
 	public static String additionalTargets = "";
 
@@ -139,6 +144,49 @@ public class mod_TreeBreaker extends BaseModMp {
 		minecraft.ingameGUI.addChatMessage(strMode);
 	}
 
+	private void changeMode() {
+		switch(mode) {
+		case 0:
+			// wood, leaves, others
+			if(allow_breakwood) {
+				breakwood = true;
+				targetIDs.add(Block.wood.blockID);
+			}
+			if(allow_breakleaves) {
+				breakleaves = true;
+				targetIDs.add(Block.leaves.blockID);
+			}
+			if(allow_breakwood || allow_breakleaves) {
+				break;
+			}
+		case 1:
+			// wood, others
+			if(allow_breakwood) {
+				breakwood = true;
+				breakleaves = false;
+				targetIDs.add(Block.wood.blockID);
+				targetIDs.remove(Block.leaves.blockID);
+				break;
+			}
+		case 2:
+			// leaves
+			if(allow_breakleaves) {
+				breakwood = false;
+				breakleaves = true;
+				targetIDs.remove(Block.wood.blockID);
+				targetIDs.add(Block.leaves.blockID);
+				break;
+			}
+		case 3:
+			// none
+			breakwood = false;
+			breakleaves = false;
+			targetIDs.remove(Block.wood.blockID);
+			targetIDs.remove(Block.leaves.blockID);
+			break;
+		}
+	}
+
 	@Override
 	public boolean onTickInGame(float f, Minecraft minecraft) {
 		if(minecraft.isMultiplayerWorld() == false) {
@@ -149,29 +197,15 @@ public class mod_TreeBreaker extends BaseModMp {
 		if(Keyboard.isKeyDown(mode_key)) {
 			key_push_times++;
 		} else if(key_push_times > 0) {
-			if(breakwood == false && breakleaves == false) {
-				breakwood = true;
-				targetIDs.add(Block.wood.blockID);
-			}
-			else if(breakwood && breakleaves == false) {
-				breakwood = true;
-				breakleaves = true;
-				targetIDs.add(Block.leaves.blockID);
-			}
-			else if(breakwood && breakleaves) {
-				breakwood = false;
-				targetIDs.remove(Block.wood.blockID);
-			}
-			else {
-				breakleaves = false;
-				targetIDs.remove(Block.leaves.blockID);
-			}
+			mode = (mode + 1) % 4;
+			changeMode();
 			key_push_times = 0;
 			printMode(minecraft);
 		}
 
 
 		if(bInit == false && bInitMode && bInitTarget && bInitLimit) {
+			changeMode();
 			printMode(minecraft);
 			printTarget(minecraft);
 
@@ -526,8 +560,10 @@ public class mod_TreeBreaker extends BaseModMp {
 		switch(packet230modloader.dataInt[0]) {
 		case cmd_mode:
 			int nMode = packet230modloader.dataInt[1];
-			breakwood =  (nMode & 1) > 0;
-			breakleaves = (nMode & 2) > 0;
+			allow_breakwood =  (nMode & 1) > 0;
+			allow_breakleaves = (nMode & 2) > 0;
+			breakwood = allow_breakwood;
+			breakleaves = allow_breakleaves;
 			bInitMode = true;
 			break;
 		case cmd_target:
