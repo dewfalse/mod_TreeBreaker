@@ -460,7 +460,7 @@ public class mod_TreeBreaker extends BaseModMp {
         	return false;
         }
     	if(debugmode) System.out.printf("breakBlock itemstack.itemDamage == %d\n", itemstack.getItemDamage());
-		if(Item.itemsList[itemstack.itemID] instanceof ItemTool == false) {
+		if(Item.itemsList[itemstack.itemID] instanceof ItemAxe == false) {
 			if(debugmode) System.out.println("breakBlock skip(Item not ItemTool)");
 			return false;
 		}
