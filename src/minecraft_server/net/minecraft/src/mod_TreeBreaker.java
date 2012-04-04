@@ -60,9 +60,6 @@ public class mod_TreeBreaker extends BaseModMp {
 
 	@Override
 	public void load() {
-		targetIDs.add(Block.wood.blockID);
-		targetIDs.add(Block.leaves.blockID);
-
 		String str = additionalTargets;
 		String[] tokens = str.split(",");
 		try {
@@ -125,6 +122,16 @@ public class mod_TreeBreaker extends BaseModMp {
 
 		int blockId = breakResister.worldObj.getBlockId(breakResister.i, breakResister.j, breakResister.k);
 		if(Block.blocksList[blockId] == null) {
+			return;
+		}
+
+		Block b = Block.blocksList[blockId];
+		if(breakwood == false && b instanceof BlockLog) return;
+		if(breakleaves == false && b instanceof BlockLeaves) return;
+		if(b instanceof BlockLog || b instanceof BlockLeaves) {
+
+		}
+		else if(targetIDs.contains(blockId) == false) {
 			return;
 		}
 

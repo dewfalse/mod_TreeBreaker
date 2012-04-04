@@ -51,24 +51,24 @@ public class mod_TreeBreaker extends BaseModMp {
 	}
 
 	@MLProp(info = "Setting for SinglePlay")
-	public static boolean breakwood = false;
+	public static final boolean break_wood = true;
 
 	@MLProp(info = "Setting for SinglePlay")
-	public static boolean breakleaves = false;
+	public static final boolean break_leaves = true;
 
 	public static boolean allow_breakwood = true;
 	public static boolean allow_breakleaves = true;
+	public static boolean breakwood_flg = true;
+	public static boolean breakleaves_flg = true;
 
 	public static int mode = 0;
 
 	@MLProp(info = "Setting for SinglePlay. Additional target block IDs. Separate by ','")
-	public static String additionalTargets = "";
+	public static final String additionalTargets = "";
 
 	public static Set<Integer> targetIDs = new LinkedHashSet();
 	public static Set<Integer> additionalTargetIDs = new LinkedHashSet();
 
-	@MLProp(info = "maximum number of block break (0 = unlimited)")
-	public static int breaklimit = 0;
 
 	public static int prev_i;
 	public static int prev_j;
@@ -87,7 +87,6 @@ public class mod_TreeBreaker extends BaseModMp {
 
 	public static int key_push_times = 0;
 
-	public static boolean bInit = false;
 
 	public static int breakcount = 0;
 
@@ -111,33 +110,40 @@ public class mod_TreeBreaker extends BaseModMp {
 
 	@Override
 	public void load() {
-		targetIDs.add(Block.wood.blockID);
-		targetIDs.add(Block.leaves.blockID);
-		System.out.print("StoneBreakerMP target = ");
-		System.out.println(targetIDs);
+		breakwood_flg = break_wood;
+		breakleaves_flg = break_leaves;
+		String str = additionalTargets;
+		String[] tokens = str.split(",");
+		try {
+			for(String token : tokens) {
+				additionalTargetIDs.add(Integer.parseInt(token.trim()));
+			}
+		} catch(NumberFormatException e) {
+
+		}
 		ModLoader.setInGameHook(this, true, true);
 	}
 
 	public void printTarget(Minecraft minecraft) {
 		String strMode = "TreeBreaker target :";
-		if(breakwood) strMode += " Wood";
-		if(breakleaves) strMode += " Leaves";
+		if(breakwood_flg) strMode += " Wood";
+		if(breakleaves_flg) strMode += " Leaves";
 		strMode += " " + additionalTargetIDs;
 
 		minecraft.ingameGUI.addChatMessage(strMode);
 	}
 	public void printMode(Minecraft minecraft) {
 		String strMode = "TreeBreaker mode :";
-		if(targetIDs.contains(Block.wood.blockID)) {
+		if(breakwood_flg) {
 			strMode += " Wood";
 		}
-		if(targetIDs.contains(Block.leaves.blockID)) {
+		if(breakleaves_flg) {
 			strMode += " Leaves";
 		}
 		if(additionalTargetIDs.size() > 0) {
 			strMode += " Others";
 		}
-		if(breakwood == false && breakleaves == false && additionalTargetIDs.size() == 0) {
+		if(breakwood_flg == false && breakleaves_flg == false && additionalTargetIDs.size() == 0) {
 			strMode += " None";
 		}
 
@@ -149,12 +155,10 @@ public class mod_TreeBreaker extends BaseModMp {
 		case 0:
 			// wood, leaves, others
 			if(allow_breakwood) {
-				breakwood = true;
-				targetIDs.add(Block.wood.blockID);
+				breakwood_flg = true;
 			}
 			if(allow_breakleaves) {
-				breakleaves = true;
-				targetIDs.add(Block.leaves.blockID);
+				breakleaves_flg = true;
 			}
 			if(allow_breakwood || allow_breakleaves) {
 				break;
@@ -162,27 +166,21 @@ public class mod_TreeBreaker extends BaseModMp {
 		case 1:
 			// wood, others
 			if(allow_breakwood) {
-				breakwood = true;
-				breakleaves = false;
-				targetIDs.add(Block.wood.blockID);
-				targetIDs.remove(Block.leaves.blockID);
+				breakwood_flg = true;
+				breakleaves_flg = false;
 				break;
 			}
 		case 2:
 			// leaves
 			if(allow_breakleaves) {
-				breakwood = false;
-				breakleaves = true;
-				targetIDs.remove(Block.wood.blockID);
-				targetIDs.add(Block.leaves.blockID);
+				breakwood_flg = false;
+				breakleaves_flg = true;
 				break;
 			}
 		case 3:
 			// none
-			breakwood = false;
-			breakleaves = false;
-			targetIDs.remove(Block.wood.blockID);
-			targetIDs.remove(Block.leaves.blockID);
+			breakwood_flg = false;
+			breakleaves_flg = false;
 			break;
 		}
 	}
@@ -190,7 +188,20 @@ public class mod_TreeBreaker extends BaseModMp {
 	@Override
 	public boolean onTickInGame(float f, Minecraft minecraft) {
 		if(minecraft.isMultiplayerWorld() == false) {
-			bInit = true;
+			allow_breakwood = break_wood;
+			allow_breakleaves = break_leaves;
+
+			String str = additionalTargets;
+			String[] tokens = str.split(",");
+			try {
+				for(String token : tokens) {
+					additionalTargetIDs.add(Integer.parseInt(token.trim()));
+					targetIDs.add(Integer.parseInt(token.trim()));
+				}
+			} catch(NumberFormatException e) {
+
+			}
+			changeMode();
 		}
 		bRemote = minecraft.isMultiplayerWorld();
 
@@ -203,13 +214,25 @@ public class mod_TreeBreaker extends BaseModMp {
 			printMode(minecraft);
 		}
 
-
-		if(bInit == false && bInitMode && bInitTarget && bInitLimit) {
-			changeMode();
-			printMode(minecraft);
-			printTarget(minecraft);
-
-			bInit = true;
+		if(minecraft.isMultiplayerWorld()) {
+			if(bInitMode && bInitTarget && bInitLimit) {
+				changeMode();
+				printMode(minecraft);
+				printTarget(minecraft);
+				bInitMode = false;
+				bInitTarget = false;
+				bInitLimit = false;
+			}
+		}
+		else {
+			if(bInitMode == false && bInitTarget == false && bInitLimit == false) {
+				changeMode();
+				printMode(minecraft);
+				printTarget(minecraft);
+				bInitMode = true;
+				bInitTarget = true;
+				bInitLimit = true;
+			}
 		}
 
 		boolean breakflag = false;
@@ -223,16 +246,26 @@ public class mod_TreeBreaker extends BaseModMp {
 		prev_blockHitWait = blockHitWait;
 
 		if(breakflag) {
-			if(targetIDs.contains(blockId)) {
-				startBreak(minecraft);
-			} else {
-				if(debugmode) {
-					System.out.print("BlockId ");
-					System.out.print(blockId);
-					System.out.print(" not in targetIDs ");
-					System.out.println(targetIDs);
+			Block b = Block.blocksList[blockId];
+			if(b != null) {
+				if(breakwood_flg && b instanceof BlockLog) {
+					startBreak(minecraft);
+				}
+				else if(breakleaves_flg && b instanceof BlockLeaves) {
+					startBreak(minecraft);
+				}
+				else if(targetIDs.contains(blockId)) {
+					startBreak(minecraft);
+				} else {
+					if(debugmode) {
+						System.out.print("BlockId ");
+						System.out.print(blockId);
+						System.out.print(" not in targetIDs ");
+						System.out.println(targetIDs);
+					}
 				}
 			}
+
 		}
 
 		if(positions.size() > 0) {
@@ -378,12 +411,6 @@ public class mod_TreeBreaker extends BaseModMp {
 					positions.clear();
 					return;
 				}
-				// ˆêŠ‡”j‰óãŒÀ‚ÍI—¹
-				if(breaklimit > 0 && breakcount >= breaklimit) {
-					positions.clear();
-					breakcount = 0;
-					return;
-				}
 			}
 		}
 		// ‚·‚×‚Ä‰ó‚·
@@ -401,12 +428,6 @@ public class mod_TreeBreaker extends BaseModMp {
 				// ƒc[ƒ‹”j‘¹‚ÍI—¹
 				if(breakBlock(minecraft, position) == false) {
 					positions.clear();
-					return;
-				}
-				// ˆêŠ‡”j‰óãŒÀ‚ÍI—¹
-				if(breaklimit > 0 && breakcount >= breaklimit) {
-					positions.clear();
-					breakcount = 0;
 					return;
 				}
 			}
@@ -562,8 +583,8 @@ public class mod_TreeBreaker extends BaseModMp {
 			int nMode = packet230modloader.dataInt[1];
 			allow_breakwood =  (nMode & 1) > 0;
 			allow_breakleaves = (nMode & 2) > 0;
-			breakwood = allow_breakwood;
-			breakleaves = allow_breakleaves;
+			breakwood_flg = allow_breakwood;
+			breakleaves_flg = allow_breakleaves;
 			bInitMode = true;
 			break;
 		case cmd_target:
@@ -577,10 +598,6 @@ public class mod_TreeBreaker extends BaseModMp {
 
 			}
 			bInitTarget = true;
-			break;
-		case cmd_limit:
-			breaklimit = packet230modloader.dataInt[1];
-			bInitLimit = true;
 			break;
 		}
 	}
