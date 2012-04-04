@@ -51,10 +51,10 @@ public class mod_TreeBreaker extends BaseModMp {
 	}
 
 	@MLProp(info = "Setting for SinglePlay")
-	public static final boolean break_wood = true;
+	public static boolean breakwood = true;
 
 	@MLProp(info = "Setting for SinglePlay")
-	public static final boolean break_leaves = true;
+	public static boolean breakleaves = true;
 
 	public static boolean allow_breakwood = true;
 	public static boolean allow_breakleaves = true;
@@ -64,7 +64,7 @@ public class mod_TreeBreaker extends BaseModMp {
 	public static int mode = 0;
 
 	@MLProp(info = "Setting for SinglePlay. Additional target block IDs. Separate by ','")
-	public static final String additionalTargets = "";
+	public static String additionalTargets = "";
 
 	public static Set<Integer> targetIDs = new LinkedHashSet();
 	public static Set<Integer> additionalTargetIDs = new LinkedHashSet();
@@ -110,8 +110,8 @@ public class mod_TreeBreaker extends BaseModMp {
 
 	@Override
 	public void load() {
-		breakwood_flg = break_wood;
-		breakleaves_flg = break_leaves;
+		breakwood_flg = breakwood;
+		breakleaves_flg = breakleaves;
 		String str = additionalTargets;
 		String[] tokens = str.split(",");
 		try {
@@ -188,8 +188,8 @@ public class mod_TreeBreaker extends BaseModMp {
 	@Override
 	public boolean onTickInGame(float f, Minecraft minecraft) {
 		if(minecraft.isMultiplayerWorld() == false) {
-			allow_breakwood = break_wood;
-			allow_breakleaves = break_leaves;
+			allow_breakwood = breakwood;
+			allow_breakleaves = breakleaves;
 
 			String str = additionalTargets;
 			String[] tokens = str.split(",");
