@@ -55,7 +55,7 @@ public class mod_TreeBreaker extends BaseModMp {
 
 	@Override
 	public String getVersion() {
-		return "[1.2.4] TreeBreaker 0.0.1";
+		return "[1.2.4] TreeBreaker 0.0.2";
 	}
 
 	@Override
@@ -106,8 +106,10 @@ public class mod_TreeBreaker extends BaseModMp {
 	public void breakItem(EntityPlayerMP entityplayermp) {
         ItemStack itemstack = entityplayermp.getCurrentEquippedItem();
 
-        itemstack.onItemDestroyedByUse(entityplayermp);
-        entityplayermp.destroyCurrentEquippedItem();
+        if(itemstack != null) {
+	        itemstack.onItemDestroyedByUse(entityplayermp);
+	        entityplayermp.destroyCurrentEquippedItem();
+        }
 	}
 
 	@Override
@@ -144,7 +146,43 @@ public class mod_TreeBreaker extends BaseModMp {
 
         if (breakResister.worldObj.getBlockId(breakResister.i, breakResister.j, breakResister.k) != 0)
         {
-    		breakResister.player.itemInWorldManager.blockHarvessted(breakResister.i, breakResister.j, breakResister.k);
+    		//breakResister.player.itemInWorldManager.blockHarvessted(breakResister.i, breakResister.j, breakResister.k);
+
+
+        	// copy from blockHarvessted
+            int i = breakResister.worldObj.getBlockId(breakResister.i, breakResister.j, breakResister.k);
+            int j = breakResister.worldObj.getBlockMetadata(breakResister.i, breakResister.j, breakResister.k);
+            breakResister.worldObj.playAuxSFXAtEntity(breakResister.player, 2001, breakResister.i, breakResister.j, breakResister.k, i + (breakResister.worldObj.getBlockMetadata(breakResister.i, breakResister.j, breakResister.k) << 12));
+            boolean flag = breakResister.player.itemInWorldManager.removeBlock(breakResister.i, breakResister.j, breakResister.k);
+
+            if (breakResister.player.itemInWorldManager.isCreative())
+            {
+                ((EntityPlayerMP)breakResister.player).playerNetServerHandler.sendPacket(new Packet53BlockChange(breakResister.i, breakResister.j, breakResister.k, breakResister.worldObj));
+            }
+            else
+            {
+                ItemStack itemstack = breakResister.player.getCurrentEquippedItem();
+                boolean flag1 = breakResister.player.canHarvestBlock(Block.blocksList[i]);
+
+                if (itemstack != null)
+                {
+                    itemstack.onDestroyBlock(i, breakResister.i, breakResister.j, breakResister.k, breakResister.player);
+
+                    if (itemstack.stackSize == 0)
+                    {
+                        itemstack.onItemDestroyedByUse(breakResister.player);
+                        breakResister.player.destroyCurrentEquippedItem();
+                    }
+                }
+
+                if (flag && flag1)
+                {
+                    Block.blocksList[i].harvestBlock(breakResister.worldObj, breakResister.player, (int)breakResister.player.posX, (int)breakResister.player.posY, (int)breakResister.player.posZ, j);
+                }
+            }
+
+
+
         	breakResister.player.playerNetServerHandler.sendPacket(new Packet53BlockChange(breakResister.i, breakResister.j, breakResister.k, breakResister.worldObj));
         }
 	}

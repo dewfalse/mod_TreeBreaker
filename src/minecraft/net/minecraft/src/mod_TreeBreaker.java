@@ -89,6 +89,7 @@ public class mod_TreeBreaker extends BaseModMp {
 
 
 	public static int breakcount = 0;
+	public static int breaklimit = 0;
 
 	public static boolean bObfuscate = true;
 
@@ -105,7 +106,7 @@ public class mod_TreeBreaker extends BaseModMp {
 
 	@Override
 	public String getVersion() {
-		return "[1.2.4] TreeBreaker 0.0.1";
+		return "[1.2.4] TreeBreaker 0.0.2";
 	}
 
 	@Override
@@ -190,6 +191,7 @@ public class mod_TreeBreaker extends BaseModMp {
 		if(minecraft.isMultiplayerWorld() == false) {
 			allow_breakwood = breakwood;
 			allow_breakleaves = breakleaves;
+			breaklimit = 0;
 
 			String str = additionalTargets;
 			String[] tokens = str.split(",");
@@ -566,12 +568,16 @@ public class mod_TreeBreaker extends BaseModMp {
 
         if (flag1)
         {
-        	block.harvestBlock(minecraft.theWorld, minecraft.thePlayer, (int)position.x, (int)position.y, (int)position.z, i);
+        	block.harvestBlock(minecraft.theWorld, minecraft.thePlayer, (int)minecraft.thePlayer.posX, (int)minecraft.thePlayer.posY, (int)minecraft.thePlayer.posZ, i);
         }
 
 		breakcount++;
 
 		if(debugmode) System.out.println("breakBlock end");
+		if(breaklimit > 0 && breakcount > breaklimit) {
+			breakcount = 0;
+			return false;
+		}
 		return ret;
 
 	}
@@ -586,6 +592,10 @@ public class mod_TreeBreaker extends BaseModMp {
 			breakwood_flg = allow_breakwood;
 			breakleaves_flg = allow_breakleaves;
 			bInitMode = true;
+			break;
+		case cmd_limit:
+			breaklimit = packet230modloader.dataInt[1];
+			bInitLimit = true;
 			break;
 		case cmd_target:
 			String str = packet230modloader.dataString[0];
