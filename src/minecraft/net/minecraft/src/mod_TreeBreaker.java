@@ -89,6 +89,9 @@ public class mod_TreeBreaker extends BaseModMp {
 
 
 	public static int breakcount = 0;
+	public static int nBreakLimit = 0;
+
+	@MLProp(info = "Setting for SinglePlay")
 	public static int breaklimit = 0;
 
 	public static boolean bObfuscate = true;
@@ -106,7 +109,7 @@ public class mod_TreeBreaker extends BaseModMp {
 
 	@Override
 	public String getVersion() {
-		return "[1.2.4] TreeBreaker 0.0.2";
+		return "[1.2.4] TreeBreaker 0.0.3";
 	}
 
 	@Override
@@ -191,7 +194,7 @@ public class mod_TreeBreaker extends BaseModMp {
 		if(minecraft.isMultiplayerWorld() == false) {
 			allow_breakwood = breakwood;
 			allow_breakleaves = breakleaves;
-			breaklimit = 0;
+			nBreakLimit = breaklimit;
 
 			String str = additionalTargets;
 			String[] tokens = str.split(",");
@@ -552,8 +555,15 @@ public class mod_TreeBreaker extends BaseModMp {
         }
         else {
             int currentItem = minecraft.thePlayer.inventory.currentItem;
-        	block.onBlockDestroyedByPlayer(minecraft.theWorld, (int)position.x, (int)position.y, (int)position.z, i);
-            minecraft.playerController.onPlayerDestroyBlock((int)position.x, (int)position.y, (int)position.z, 0);
+
+            minecraft.theWorld.playAuxSFX(2001, (int)position.x, (int)position.y, (int)position.z, block.blockID + (minecraft.theWorld.getBlockMetadata((int)position.x, (int)position.y, (int)position.z) << 12));
+            boolean flag = minecraft.theWorld.setBlockWithNotify((int)position.x, (int)position.y, (int)position.z, 0);
+
+            if (block != null && flag)
+            {
+                block.onBlockDestroyedByPlayer( minecraft.theWorld, (int)position.x, (int)position.y, (int)position.z, i);
+            }
+
             itemstack.onDestroyBlock(i, (int)position.x, (int)position.y, (int)position.z, minecraft.thePlayer);
             if (itemstack.stackSize == 0)
             {
@@ -574,7 +584,7 @@ public class mod_TreeBreaker extends BaseModMp {
 		breakcount++;
 
 		if(debugmode) System.out.println("breakBlock end");
-		if(breaklimit > 0 && breakcount > breaklimit) {
+		if(nBreakLimit > 0 && breakcount > nBreakLimit) {
 			breakcount = 0;
 			return false;
 		}
@@ -594,7 +604,7 @@ public class mod_TreeBreaker extends BaseModMp {
 			bInitMode = true;
 			break;
 		case cmd_limit:
-			breaklimit = packet230modloader.dataInt[1];
+			nBreakLimit = packet230modloader.dataInt[1];
 			bInitLimit = true;
 			break;
 		case cmd_target:
