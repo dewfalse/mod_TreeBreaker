@@ -55,7 +55,7 @@ public class mod_TreeBreaker extends BaseModMp {
 
 	@Override
 	public String getVersion() {
-		return "[1.2.4] TreeBreaker 0.0.2";
+		return "[1.2.4] TreeBreaker 0.0.3";
 	}
 
 	@Override

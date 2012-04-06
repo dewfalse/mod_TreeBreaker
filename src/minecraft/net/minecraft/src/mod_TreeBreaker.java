@@ -536,7 +536,13 @@ public class mod_TreeBreaker extends BaseModMp {
 
         	block.onBlockDestroyedByPlayer(minecraft.theWorld, (int)position.x, (int)position.y, (int)position.z, i);
     		player.sendQueue.addToSendQueue(new Packet14BlockDig(2, (int)position.x, (int)position.y, (int)position.z, 0));
-            minecraft.playerController.onPlayerDestroyBlock((int)position.x, (int)position.y, (int)position.z, 0);
+            minecraft.theWorld.playAuxSFX(2001, (int)position.x, (int)position.y, (int)position.z, block.blockID + (minecraft.theWorld.getBlockMetadata((int)position.x, (int)position.y, (int)position.z) << 12));
+            boolean flag = minecraft.theWorld.setBlockWithNotify((int)position.x, (int)position.y, (int)position.z, 0);
+
+            if (block != null && flag)
+            {
+                block.onBlockDestroyedByPlayer( minecraft.theWorld, (int)position.x, (int)position.y, (int)position.z, i);
+            }
 
             itemstack.onDestroyBlock(i, (int)position.x, (int)position.y, (int)position.z, minecraft.thePlayer);
 
