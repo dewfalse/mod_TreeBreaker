@@ -303,6 +303,17 @@ public class mod_TreeBreaker extends BaseModMp {
 		if(bObfuscate) {
 			String s = "";
 			try {
+				if(minecraft.playerController instanceof PlayerControllerMP) {
+					blockHitWait = (Integer) ModLoader.getPrivateValue(PlayerControllerMP.class, minecraft.playerController, "i");
+				}
+				else if(minecraft.playerController instanceof PlayerControllerSP) {
+					blockHitWait = (Integer) ModLoader.getPrivateValue(PlayerControllerSP.class, minecraft.playerController, "i");
+				}
+				else if(minecraft.playerController instanceof PlayerControllerCreative) {
+					blockHitWait = (Integer) ModLoader.getPrivateValue(PlayerControllerSP.class, minecraft.playerController, "i");
+				}
+				return blockHitWait;
+				/*
 				if(minecraft.playerController.isNotCreative()) {
 					if(minecraft.theWorld.isRemote) {
 						// blockHitWait obfuscate i
@@ -318,7 +329,7 @@ public class mod_TreeBreaker extends BaseModMp {
 					// blockHitWait obfuscate i
 					blockHitWait = (Integer) ModLoader.getPrivateValue(PlayerControllerCreative.class, minecraft.playerController, "c");
 					return blockHitWait;
-				}
+				}*/
 			} catch (IllegalArgumentException e) {
 				s = "bObfuscate IllegalArgumentException";
 				e.printStackTrace();
@@ -336,6 +347,17 @@ public class mod_TreeBreaker extends BaseModMp {
 
 		String s = "";
 		try {
+			if(minecraft.playerController instanceof PlayerControllerMP) {
+				blockHitWait = (Integer) ModLoader.getPrivateValue(PlayerControllerMP.class, minecraft.playerController, "blockHitDelay");
+			}
+			else if(minecraft.playerController instanceof PlayerControllerSP) {
+				blockHitWait = (Integer) ModLoader.getPrivateValue(PlayerControllerSP.class, minecraft.playerController, "blockHitWait");
+			}
+			else if(minecraft.playerController instanceof PlayerControllerCreative) {
+				blockHitWait = (Integer) ModLoader.getPrivateValue(PlayerControllerSP.class, minecraft.playerController, "field_35647_c");
+			}
+			return blockHitWait;
+			/*
 			if(minecraft.playerController.isNotCreative()) {
 				if(minecraft.theWorld.isRemote) {
 					// blockHitWait obfuscate i
@@ -352,6 +374,7 @@ public class mod_TreeBreaker extends BaseModMp {
 				blockHitWait = (Integer) ModLoader.getPrivateValue(PlayerControllerCreative.class, minecraft.playerController, "field_35647_c");
 				return blockHitWait;
 			}
+			*/
 		} catch (IllegalArgumentException e) {
 			s = "not bObfuscate IllegalArgumentException";
 			e.printStackTrace();
@@ -485,6 +508,7 @@ public class mod_TreeBreaker extends BaseModMp {
         	if(debugmode) System.out.println("breakBlock skip(itemstack.stackSize == 0)");
         	return false;
         }
+        
     	if(debugmode) System.out.printf("breakBlock itemstack.itemDamage == %d\n", itemstack.getItemDamage());
 		if(Item.itemsList[itemstack.itemID] instanceof ItemAxe == false) {
 			if(debugmode) System.out.println("breakBlock skip(Item not ItemTool)");
